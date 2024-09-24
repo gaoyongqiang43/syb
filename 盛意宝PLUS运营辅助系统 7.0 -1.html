@@ -1,0 +1,261 @@
+<img src="https://m.qpic.cn/psc?/V53kMR212AFHKJ2kpcwW1UJtlm25jHM2/LiySpxowE0yeWXwBdXN*SbHn0.J51C2fPr7n2TsNVhLNOp5havpvV0ENNVqQJczKw2BIpvsqDpYfLjo9aE6qCeOpwWke9dxNb5w54n3LdoA!/b&bo=OAQ4BAAAAAADByI!&rf=viewer_4" alt="图片描述" width="350" height="350">
+<!DOCTYPE html>
+<html>
+<head>
+<title>盛意宝PLUS运营辅助系统</title>
+<style>
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+h1 {
+  margin-bottom: 30px;
+  color: #FF0000; /* 修改标题颜色 */
+  font-size: 36px; /* 修改标题字体大小 */
+}
+h2 {
+  margin-bottom: 20px;
+  color: #0000FF; /* 修改副标题颜色 */
+  font-size: 18px; /* 修改副标题字体大小 */
+}
+#questionInput {
+  width: 300px;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+#answer {
+  font-size: 18px;
+  margin-top: 20px;
+  color: #800080; /* 修改答案颜色 */
+}
+#filteredQuestions {
+  display: none;
+  position: absolute;
+  width: 300px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.filteredQuestion {
+  cursor: pointer;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  color: #000000; /* 修改问题列表颜色 */
+  font-size: 14px; /* 修改问题列表字体大小 */
+}
+.filteredQuestion:hover {
+  background-color: #f0f0f0;
+}
+#history {
+  margin-top: 20px;
+}
+.historyItem {
+  margin-bottom: 10px;
+  color: #808080; /* 修改历史记录颜色 */
+  font-size: 16px; /* 修改历史记录字体大小 */
+}
+.clearHistoryButton {
+  margin-top: 10px;
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<h1>盛意宝PLUS运营辅助系统</h1>
+<h2>请输入问题或关键字：</h2>
+<input type="text" id="questionInput" oninput="filterQuestions()">
+<div id="filteredQuestions"></div>
+<h2>答案：</h2>
+<div id="answer"></div>
+<div id="history">
+  <h2 style="text-align: center;">历史查询记录：</h2>
+  <div id="historyItems"></div>
+  <div class="clearHistoryButton" style="text-align: center;" onclick="clearHistory()">清除历史记录</div>
+</div>
+<script>
+// 问题和答案数据...
+var questionsAndAnswers = {
+ "提现秒到额度": "单日10万，超出部分T+1到账",
+ "S3-未知返回码": "初始化下载密钥，99  12345678-1 商户参数设置-1 初始化-然后5 终端密钥管理-2 主密钥下载-01  0000签到",
+ "62域解析处理失败": "初始化下载密钥，99  12345678-1 商户参数设置-1 初始化-然后5 终端密钥管理-2 主密钥下载-01  0000签到",
+ "31-此卡不能受理": "发卡行限制，换卡交易",
+ "无法查询到商户入网信息": "半小时后重试绑定",
+ "代理商入网注册限制": "一个手机号码只能注册一个代理商，同一主体不同手机号或邮箱不限制注册代理商次数。",
+ "收单商户入网注册限制": "一个身份证，盛付通产品累计不能超过3个；超3个的以注册结果为准。超2个的只能关联之前的商户名称",
+ "个人超银联注册限制能否入网": "小微可以注册两个，如果注册机构超五或者全网注册小微超15，目前产品没有告知过可以注册，不过可以让商户试试",
+ "装机年龄限制": "年龄范围：18-70",
+ "限制进件地区（所有产品）": "云南2个地区：临沧、德宏、广西2个地区：百色、崇左；江西2个地区：上饶市万年、余干两县；以及西藏全境。",
+ "微信认证驳回代理商如何处理": "前往MSP后台-商户管理-扫码开通进度查询-详",
+ "代理商入网提示营业执照和商户注册类型不一致": "一级代理商入网必须是企业，个体工商户无法注册。",
+ "是否支持合并到账": "可以合并到账，最低100元，商户端选择手动提现即可",
+ "分润起提金额多少": "分润50元起提，隔日到账",
+ "商户秒到最低金额多少": "秒到最低金额100元；单日秒到限额10万。",
+ "商户秒到时间": "T0秒到时间是（6:00~23:59:59），非这个时间段的交易不会秒到出款，会次日到账；",
+ "流量卡扣款是根据商户还是终端定的": "换绑只要商户号或者机具号发生变化，都会重新收取一次流量卡费，然后继续按照第一次收取流量卡的时间进行扣费",
+ "刷卡金额低于100提现": "低于100元，提现金额进入钱包余额中，次日自动出款，当日累计提现金额满100，不会自动秒到，也是第二天自动出款，但可进行手动提现秒到。",
+ "最低刷卡金额": "0.01元",
+ "信用卡认证提升秒到额度": "认证一张卡提升10W，最多认证4张，秒到额度提升至50W",
+ "磁条卡认证": "磁条认不认证都是10万限额",
+ "实名认证收不到验证码": "实名认证不能修改手机号码，只能是当前登录账户的手机号才能获取短信",
+ "app分润提现可到法人对私卡吗": "认证企业结算到对公账户，认证对私结算到个人账户",
+ "已激活的设备不支持修改流量卡政策": "拿到机器后先配置机具流量卡的默认政策！确定要选择间隔几个月扣款，不然默认就是10个月扣一次，入网了就改不了了",
+ "费率修改": "未绑定的实时生效，已绑定的次日生效",
+ "商户变更结算卡，多久出款": "T+1到账",
+ "结算金额低于流量费扣款金额如何出款": "冻结交易款项，直至满足金额后恢复出款",
+ "解绑注销代理商户": "有绑设备要去PC端先解绑，公众号--我的--设置里面点注销，前提是代理商先解绑机具",
+ "云闪付白名单申请条件（二选一）": "1.主体在盛付通申请过代理商，2.新主体必须商户数达到100个以上",
+ "交易不到账情况，一、在公众号账户余额的情况": "1.提现尝试如提示提现成功，稍后又自动退回APP余额，2.提现尝试如提示【付款人账户止出】，3. 100元以内金额不秒到，次日明天7-12点关注到账，4.提现尝试如提示【商户额度不足或者身份额度不足】，商户公众号--我的--信用卡认证一张提额后再操作提现。",
+ "交易不到账情况，二、不在公众号余额的情况": "1.核实当天交易金额是否超出T0交易出款额度，默认10万。（身份证办理过多个商户号，T0额度是共享的），商户公众号--我的--信用卡认证提额后会自动出款，2.商户公众号--我的--待补签名或验证银行卡，进去补充交易卡信息效验通过后自动出款，3.核实交易时间，0-6点交易不秒到，次日明天7-12点关注到账，4.咨询一级代理商，代理商交易查询核实交易卡类型（交易管理--交易查询），借记卡不支持秒到，次日明天7-12点关注到账。",
+ "交易报错代码00": "pos机交易成功承兑或交易成功",
+ "交易报错代码01": "pos机交易失败，请联系发卡行查发卡行或检查卡内余额",
+ "交易报错代码02": "pos机交易失败，请联系发卡行查发卡行或检查卡内余额",
+ "交易报错代码03": "商户未登记，无权使用银联pos机终端联系银行卡服务中心处理",
+ "交易报错代码04": "没收卡，请联系收单行操作员没收卡（这种情况为高风险卡片，有黑卡或仿卡的嫌疑）",
+ "交易报错代码05": "交易失败，请联系发卡行发卡不予承兑，与发银行联系查询",
+ "交易报错代码06": "交易失败，请联系发卡行发卡行故障，稍等重新刷卡",
+ "交易报错代码07": "没收卡，请联系收单行特殊条件下没收卡，这种情况为高风险卡片，有黑卡或仿卡的嫌疑",
+ "交易报错代码09": "交易失败，请重试重做该交易，稍等重新刷卡",
+ "交易报错代码12": "交易失败，请重试发卡行不支持的交易，这种情况为部分银行卡不识别银联pos机上的刷卡器或未和银联签订支付清算协议，或者商户未签到（注意：也有可能是我司内部配置问题，或者银联投诉关闭终端，客服同事可联系运营同事询问）",
+ "交易报错代码13": "交易金额超限，请重试交易金额无效，采用小金额交易或与发卡行联系，可向银行申请暂时提升信誉额度，或小额刷卡。",
+ "交易报错代码14": "无效卡号，请联系发卡行无效卡号，与银行卡服务中心或发卡行联系，长时间未使用或未交年费管理费情况造成，或者注销卡。",
+ "交易报错代码15": "此卡不能受理与银行卡服务中心联系处理，未接入银联网络，银联不予以清算和结账。",
+ "交易报错代码19": "交易失败，请联系发卡行刷卡读取数据有误，重新刷卡",
+ "交易报错代码20": "交易失败，请联系发卡行与银行卡服务中心或发卡行联系",
+ "交易报错代码21": "交易失败，请联系发卡行与银行卡服务中心或发卡行联系",
+ "交易报错代码22": "操作有误，请重试 POS状态与中心不符，重新签到，确定操作员号码和密码正确，重新刷卡。",
+ "交易报错代码23": "交易失败，请联系发卡行不可接受的交易费，这笔交易资金存在风险或者未签订银联协议。",
+ "交易报错代码25": "交易失败，请联系发卡行发卡行未能找到有关记录，核对有关资料重做该交易或与发卡行联系",
+ "交易报错代码30": "交易失败，请重试检查卡磁条是否完好或反方向刷卡或者银联pos机的磁条没有问题，以及其他接口正常。",
+ "交易报错代码31": "此卡不能受理此发卡方未与中心开通业务，检查此卡是否是签订银联协议的银行卡。",
+ "交易报错代码33": "过期卡，请联系发卡行过期的卡或与发卡行联系，暂时冻结结算功能",
+ "交易报错代码34": "没收卡，请联系收单行有作弊嫌疑的卡，操作员可以没收（黑卡仿卡，高风险卡）",
+ "交易报错代码35": "没收卡，请联系收单行有作弊嫌疑的卡，操作员可以没收（黑卡仿卡，高风险卡）",
+ "交易报错代码36": "此卡有误，请换卡重试有作弊嫌疑的卡，操作员可以没收（黑卡仿卡，高风险卡）",
+ "交易报错代码37": "没收卡，请联系收单行有作弊嫌疑的卡，操作员可以没收（黑卡仿卡，高风险卡）",
+ "交易报错代码38": "密码错误次数超限密码输错的次数超限，一般pos机结算刷卡为保护持卡人利益，连续输入3次未能输入正确，发卡行系统自动冻结此卡，24小时后自动解冻。",
+ "交易报错代码39": "交易失败，请联系发卡行可能刷卡操作有误，请重新刷卡",
+ "交易报错代码40": "交易失败，请联系发卡行发卡行不支持的交易类型，查看卡内余额以及操作流程得当，重新刷卡。",
+ "交易报错代码41": "没收卡，请联系收单行挂失的卡，与发卡行联系处理，此卡已经挂失，一般为盗卡，高风险卡。",
+ "交易报错代码42": "交易失败，请联系发卡方发卡行找不到此帐户，此卡为黑卡，防范风险。",
+ "交易报错代码43": "没收卡，请联系收单行被窃卡，操作员可以没收，黑卡、盗卡防范风险",
+ "交易报错代码44": "交易失败，请联系发卡行可能刷卡操作有误，重新刷卡，确定刷卡流程和步骤正确。",
+ "交易报错代码48": "该卡片未激活，请持卡人确认近期是否有换过卡，使用的是否是旧卡",
+ "交易报错代码51": "余额不足，请查询帐户内余额不足，小额刷卡。",
+ "交易报错代码52": "交易失败，请联系发卡行无此支票账户，信用卡信息不全或者不准确，核实后补充资料",
+ "交易报错代码53": "交易失败，请联系发卡行无此储蓄卡账户，没有登记的卡，过期卡、实效卡、仿卡",
+ "交易报错代码54": "过期卡，请联系发卡行过期的卡，像银行提出申请重新补办或开通",
+ "交易报错代码55": "密码错，请重试密码输错，可重新输入，注意只可以联系刷如3次要是还没有输入正确此卡将被暂时冻结。",
+ "交易报错代码56": "交易失败，请联系发卡行发卡行找不到此帐户，与发卡行联系，黑卡、盗卡、仿卡注意防范风险",
+ "交易报错代码57": "交易失败，请联系发卡行不允许持卡人进行的交易，与发卡行联系，持卡人之前交易有套现嫌疑，属于银行的风险持卡人，银行对此持卡人已提升监控。",
+ "交易报错代码58": "终端无效，请联系收单行或银联重新签到再试或与银行卡服务中心联系。（注意：也有可能是商户的终端被关停了，商户若询问，可让其联系对应代理商）",
+ "交易报错代码59": "交易失败，请联系发卡行，是否开通结算功能，或者超出额度（先刷卡满100元，在扫码交易）",
+ "交易报错代码60": "交易失败，请联系发卡行查询卡内余额或者询问此卡是否签订银联协议",
+ "交易报错代码61": "金额太大超出去款金额限制，可向银行提出暂时额度，根据持卡人消费核定暂时额度的金额",
+ "交易报错代码62": "交易失败，请联系发卡行受限制的卡，此持卡人为银行的风险持卡人，已被银行监控，注意防范风险",
+ "交易报错代码63": "交易失败，请联系发卡行违反安全保密规定，存在恶意透支或者没有按时还款",
+ "交易报错代码64": "交易失败，请联系发卡行原始金额不正确，核对原始资料或与发卡行联系，持卡人资料有问题，请核实持卡人身份资料，及卡片资料。",
+ "交易报错代码65": "超出取款次数限制超出取款次数限制，银行系统风险控制，联系银行解决",
+ "交易报错代码66": "交易失败，请联系收单行或银联银联磁条不识别或者卡片消磁",
+ "交易报错代码67": "没收卡黑卡、盗卡、仿卡高风险卡片，注意防范风险",
+ "交易报错代码68": "交易超时，请重试发卡行规定时间内没有应答，与银行卡服务中心或发卡行联系，重新签到或操作刷卡。",
+ "交易报错代码75": "密码错误次数超限允许的输入PIN次数超限，该卡要重置密码方能使用，拨打银行客户服务电话解决",
+ "交易报错代码77": "请向网络中心签到重做签到，输入密码和操作员号码",
+ "交易报错代码79": "POS终端重传脱机数据 POS终端上传的脱机数据对帐不平，检查接口是否链接好",
+ "交易报错代码90": "交易失败，请稍后重试日期切换正在处理，与银行卡服务中心或发卡行联系",
+ "交易报错代码91": "交易失败，请稍后重试电话查询发卡方或银联，可重作，重新输入操作员号码和密码",
+ "交易报错代码92": "交易失败，请稍后重试银行通讯故障，电话查询发卡方或网络中心",
+ "交易报错代码93": "交易失败，请联系发卡行交易违法、不能完成。有套现或恶意透支嫌疑可重新签到后再试",
+ "交易报错代码94": "交易失败，请稍后重试重新签到后再交易或与银行卡服务中心联系",
+ "交易报错代码95": "交易失败，请稍后重试发卡行调节控制错，与发卡行联系，银行系统风险控制",
+ "交易报错代码96": "交易失败，请稍后重试与发卡行或银行卡服务中心联系银行或银联风险系统自动报警，也有可能是商户网络问题。（注意：如果有批量现象发生，也有可能是我司系统问题，客服同事可联系运营做核实）",
+ "交易报错代码97": "终端未登记，请联系收单行或银联与银行卡服务中心联系，及时递交资料解决",
+ "交易报错代码98": "交易超时，请重试银联收不到发卡行应答，与银行卡服务中心或发卡行联系",
+ "交易报错代码99": "校验错，请重新签到重新签到再作交易",
+ "交易报错代码A0": "校验错，请重新签到重新签到作交易",
+ "交易报错代码codeA8": "交易失败，请稍后重试。支付宝未认证，支付宝端问题",
+ "交易报错代码操作员99登录": "在系统参数设置里面改流水号扩大试试",
+   // 在这里添加更多的问题和答案
+};
+var historyItems = [];
+
+function filterQuestions() {
+  var input = document.getElementById("questionInput").value.toLowerCase();
+  var filteredQuestionsDiv = document.getElementById("filteredQuestions");
+  var filteredQuestions = Object.keys(questionsAndAnswers).filter(function(question) {
+    return question.toLowerCase().includes(input);
+  });
+  if (input.length > 0 && filteredQuestions.length > 0) {
+    filteredQuestionsDiv.style.display = "block";
+    filteredQuestionsDiv.innerHTML = "";
+    filteredQuestions.forEach(function(question) {
+      var questionDiv = document.createElement("div");
+      questionDiv.textContent = question;
+      questionDiv.classList.add("filteredQuestion");
+      questionDiv.onclick = function() {
+        showAnswer(question);
+        document.getElementById("questionInput").value = question;
+        filteredQuestionsDiv.style.display = "none";
+        addToHistory(question, questionsAndAnswers[question]);
+      };
+      filteredQuestionsDiv.appendChild(questionDiv);
+    });
+  } else {
+    filteredQuestionsDiv.style.display = "none";
+  }
+}
+
+function showAnswer(question) {
+  var answerDiv = document.getElementById("answer");
+  answerDiv.textContent = questionsAndAnswers[question];
+}
+
+function addToHistory(question, answer) {
+  historyItems.push({ question: question, answer: answer });
+  var historyItemsDiv = document.getElementById("historyItems");
+  var historyItemDiv = document.createElement("div");
+  historyItemDiv.classList.add("historyItem");
+  historyItemDiv.textContent = question + " - " + answer;
+  historyItemsDiv.appendChild(historyItemDiv);
+  localStorage.setItem("historyItems", JSON.stringify(historyItems));
+}
+
+function clearHistory() {
+  historyItems = [];
+  var historyItemsDiv = document.getElementById("historyItems");
+  historyItemsDiv.innerHTML = "";
+  localStorage.removeItem("historyItems");
+}
+
+// 加载历史记录
+function loadHistory() {
+  var historyItemsString = localStorage.getItem("historyItems");
+  if (historyItemsString) {
+    historyItems = JSON.parse(historyItemsString);
+    var historyItemsDiv = document.getElementById("historyItems");
+    historyItems.forEach(function(historyItem) {
+      var historyItemDiv = document.createElement("div");
+      historyItemDiv.classList.add("historyItem");
+      historyItemDiv.textContent = historyItem.question + " - " + historyItem.answer;
+      historyItemsDiv.appendChild(historyItemDiv);
+    });
+  }
+}
+
+// 在页面加载时加载历史记录
+loadHistory();
+
+// 在页面关闭时保存历史记录
+window.addEventListener("beforeunload", function() {
+  localStorage.setItem("historyItems", JSON.stringify(historyItems));
+});
+
+</script>
+</body>
+</html>
